@@ -1,10 +1,12 @@
-export const dynamic = "force-dynamic";
+﻿export const dynamic = "force-dynamic";
+
+import { UserRole } from "@prisma/client";
+import { ShieldCheck } from "lucide-react";
 
 import { logoutAction } from "@/actions/auth";
 import { AdminNavShell } from "@/components/nav-shell";
 import { PageContainer, Button } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
-import { UserRole } from "@prisma/client";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await requireUser(UserRole.ADMIN);
@@ -12,9 +14,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <main className="app-shell flex-1">
       <PageContainer>
-        <div className="mb-4 flex items-center justify-between gap-3 pt-2">
+        <div className="mb-5 flex items-center justify-between gap-3 pt-2">
           <div>
-            <div className="text-sm font-black uppercase tracking-[0.18em] text-primary">Bolao do Heitor</div>
+            <div className="kicker mb-2">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Organização da Copa
+            </div>
             <div className="text-sm text-muted-foreground">Admin: {session.user.nickname || session.user.name}</div>
           </div>
           <form action={logoutAction}>
