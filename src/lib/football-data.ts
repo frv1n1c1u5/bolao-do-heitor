@@ -4,6 +4,7 @@ import { MatchStatus, Winner } from "@prisma/client";
 import { toZonedTime } from "date-fns-tz";
 
 import { env } from "@/lib/env";
+import { WORLD_CUP_2026 } from "@/lib/world-cup";
 
 type FootballMatch = {
   id: number;
@@ -88,17 +89,42 @@ export async function fetchMatches(params: {
   competition?: string;
   status?: string;
 }) {
+  const competition = (params.competition || "").trim().toUpperCase();
   const search = new URLSearchParams();
   if (params.dateFrom) search.set("dateFrom", params.dateFrom);
   if (params.dateTo) search.set("dateTo", params.dateTo);
-  if (params.competition) search.set("competitions", params.competition);
   if (params.status) search.set("status", params.status);
+
+  if (competition) {
+    if (competition === WORLD_CUP_2026.code) {
+      search.set("season", "2026");
+    }
+
+    const result = await footballFetch<{ matches: FootballMatch[] }>(
+      `/competitions/${competition}/matches?${search.toString()}`,
+    );
+
+    return result.matches.map(mapExternalMatch);
+  }
 
   const result = await footballFetch<{ matches: FootballMatch[] }>(
     `/matches?${search.toString()}`,
   );
 
   return result.matches.map(mapExternalMatch);
+}
+
+export async function fetchWorldCup2026Matches(params?: {
+  dateFrom?: string;
+  dateTo?: string;
+  status?: string;
+}) {
+  return fetchMatches({
+    competition: WORLD_CUP_2026.code,
+    dateFrom: params?.dateFrom ?? WORLD_CUP_2026.startDate,
+    dateTo: params?.dateTo ?? WORLD_CUP_2026.endDate,
+    status: params?.status,
+  });
 }
 
 export async function fetchMatchById(externalApiId: number) {

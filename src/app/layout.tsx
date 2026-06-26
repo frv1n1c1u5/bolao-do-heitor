@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Bolao do Heitor",
+  title: "Bolao do Heitor | Copa do Mundo 2026",
   description:
-    "PWA para boloes de futebol com Pix manual, apura--o autom-tica e ranking por participacao confirmada.",
+    "PWA do Bolao do Heitor para a Copa do Mundo 2026, com Pix manual, jogos da football-data.org e ranking por participacao confirmada.",
   applicationName: "Bolao do Heitor",
   appleWebApp: {
     capable: true,
