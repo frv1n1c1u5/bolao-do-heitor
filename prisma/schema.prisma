@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  PLAYER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PoolType {
+  GAME
+  DAY
+}
+
+enum PoolStatus {
+  OPEN
+  CLOSED
+  IN_PROGRESS
+  SCORING
+  FINISHED
+}
+
+enum PaymentStatus {
+  PENDING
+  WAITING_CONFIRMATION
+  CONFIRMED
+  REJECTED
+}
+
+enum PrizeStatus {
+  NONE
+  PENDING
+  PAID
+}
+
+enum Winner {
+  HOME
+  DRAW
+  AWAY
+  UNKNOWN
+}
+
+enum MatchStatus {
+  SCHEDULED
+  TIMED
+  IN_PLAY
+  PAUSED
+  FINISHED
+  POSTPONED
+  CANCELED
+  SUSPENDED
+  UNKNOWN
+}
+
+enum PrizeMode {
+  ONE
+  TOP2
+  TOP3
+}
+
+model User {
+  id                  String        @id @default(cuid())
+  name                String
+  nickname            String?
+  phone               String        @unique
+  role                UserRole
+  status              UserStatus    @default(ACTIVE)
+  pinHash             String
+  failedLoginAttempts Int           @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  createdPools        Pool[]        @relation("PoolCreatedBy")
+  confirmedPayments   PoolEntry[]   @relation("PaymentConfirmedBy")
+  entries             PoolEntry[]
+  rankings            PoolRanking[]
+  sessions            Session[]
+  auditLogs           AuditLog[]    @relation("AuditActor")
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AdminSettings {
+  id                  String   @id @default(cuid())
+  pixKey              String?
+  pixReceiverName     String?
+  pixCity             String?
+  pixCopyPaste        String?
+  paymentInstructions String?
+  houseFeePercentage  Decimal  @default(30) @db.Decimal(5, 2)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Match {
+  id              String        @id @default(cuid())
+  externalApiId   Int           @unique
+  competitionName String
+  competitionCode String?
+  homeTeam        String
+  awayTeam        String
+  homeCrest       String?
+  awayCrest       String?
+  utcDate         DateTime
+  localDate       DateTime
+  status          MatchStatus   @default(SCHEDULED)
+  homeScore       Int?
+  awayScore       Int?
+  winner          Winner        @default(UNKNOWN)
+  rawApiPayload   Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  poolMatches     PoolMatch[]
+  predictions     Prediction[]
+
+  @@index([utcDate])
+  @@index([status])
+}
+
+model Pool {
+  id                    String        @id @default(cuid())
+  name                  String
+  type                  PoolType
+  poolDate              DateTime
+  entryFee              Decimal       @db.Decimal(10, 2)
+  cutoffDateTime        DateTime?
+  status                PoolStatus    @default(OPEN)
+  houseFeePercentage    Decimal       @default(30) @db.Decimal(5, 2)
+  prizePercentage       Decimal       @default(70) @db.Decimal(5, 2)
+  prizeMode             PrizeMode     @default(ONE)
+  firstPlacePercentage  Decimal       @default(100) @db.Decimal(5, 2)
+  secondPlacePercentage Decimal       @default(0) @db.Decimal(5, 2)
+  thirdPlacePercentage  Decimal       @default(0) @db.Decimal(5, 2)
+  notes                 String?
+  createdById           String
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  createdBy             User          @relation("PoolCreatedBy", fields: [createdById], references: [id])
+  poolMatches           PoolMatch[]
+  entries               PoolEntry[]
+  rankings              PoolRanking[]
+
+  @@index([poolDate])
+  @@index([status])
+}
+
+model PoolMatch {
+  id        String   @id @default(cuid())
+  poolId    String
+  matchId   String
+  createdAt DateTime @default(now())
+  pool      Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([poolId, matchId])
+}
+
+model PoolEntry {
+  id                   String        @id @default(cuid())
+  poolId               String
+  userId               String
+  paymentStatus        PaymentStatus @default(PENDING)
+  markedAsPaidAt       DateTime?
+  paymentConfirmedAt   DateTime?
+  paymentConfirmedById String?
+  prizeStatus          PrizeStatus   @default(NONE)
+  prizePaidAt          DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  pool                 Pool          @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentConfirmedBy   User?         @relation("PaymentConfirmedBy", fields: [paymentConfirmedById], references: [id])
+  predictions          Prediction[]
+
+  @@unique([poolId, userId])
+  @@index([paymentStatus])
+}
+
+model Prediction {
+  id                  String    @id @default(cuid())
+  poolEntryId         String
+  matchId             String
+  predictedHomeScore  Int
+  predictedAwayScore  Int
+  predictedWinner     Winner
+  points              Int       @default(0)
+  exactScoreHit       Boolean   @default(false)
+  winnerHit           Boolean   @default(false)
+  goalDifferenceError Int       @default(0)
+  lockedAt            DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  poolEntry           PoolEntry @relation(fields: [poolEntryId], references: [id], onDelete: Cascade)
+  match               Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@unique([poolEntryId, matchId])
+  @@index([matchId])
+}
+
+model PoolRanking {
+  id                       String   @id @default(cuid())
+  poolId                   String
+  userId                   String
+  totalPoints              Int      @default(0)
+  exactScores              Int      @default(0)
+  correctWinners           Int      @default(0)
+  totalGoalDifferenceError Int      @default(0)
+  position                 Int      @default(0)
+  isTechnicalTie           Boolean  @default(false)
+  prizeAmount              Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  pool                     Pool     @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([poolId, userId])
+  @@index([poolId, position])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String
+  oldValue    Json?
+  newValue    Json?
+  createdAt   DateTime @default(now())
+  actor       User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
