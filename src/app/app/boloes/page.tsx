@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { UserRole } from "@prisma/client";
 
 import { AppHeader, StatusBadge } from "@/components/app-shell";
@@ -8,7 +8,7 @@ import { getDb } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 export default async function PlayerPoolsPage() {
-  const session = await requireUser(UserRole.PLAYER);
+  const session = await requireUser([UserRole.PLAYER, UserRole.ADMIN]);
   const pools = await getDb().pool.findMany({
     where: { status: { in: ["OPEN", "CLOSED", "IN_PROGRESS"] } },
     include: { entries: { where: { userId: session.user.id } }, poolMatches: true },
@@ -17,7 +17,7 @@ export default async function PlayerPoolsPage() {
 
   return (
     <div className="space-y-4">
-      <AppHeader title="Boloes abertos" subtitle="Entre no bolao, faca o Pix e envie seus palpites antes do inicio de cada jogo." />
+      <AppHeader title="Bolões abertos" subtitle="Entre no bolão, faça o Pix e envie seus palpites antes do início de cada jogo." />
       <div className="space-y-4">
         {pools.map((pool) => {
           const entry = pool.entries[0];
@@ -31,8 +31,8 @@ export default async function PlayerPoolsPage() {
                 <StatusBadge status={pool.status} />
               </div>
               <div className="flex items-center justify-between gap-3 text-sm">
-                <div className="text-muted-foreground">Participa--o: <span className="font-semibold text-foreground">{formatCurrency(Number(pool.entryFee))}</span></div>
-                {entry ? <StatusBadge status={entry.paymentStatus} /> : <div className="text-muted-foreground">Voce ainda nao entrou</div>}
+                <div className="text-muted-foreground">Participação: <span className="font-semibold text-foreground">{formatCurrency(Number(pool.entryFee))}</span></div>
+                {entry ? <StatusBadge status={entry.paymentStatus} /> : <div className="text-muted-foreground">Você ainda não entrou</div>}
               </div>
               <div className="text-right">
                 <Link className="text-sm font-semibold text-primary" href={`/app/boloes/${pool.id}`}>Abrir</Link>

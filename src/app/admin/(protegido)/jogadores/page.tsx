@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { PaymentStatus, PoolStatus, UserRole } from "@prisma/client";
 
 import { resetPlayerPinAction, updatePlayerStatusAction } from "@/actions/admin";
@@ -12,7 +12,6 @@ export default async function AdminPlayersPage() {
   await requireUser(UserRole.ADMIN);
   const db = getDb();
   const players = await db.user.findMany({
-    where: { role: UserRole.PLAYER },
     include: {
       entries: {
         where: { paymentStatus: PaymentStatus.CONFIRMED },
@@ -27,7 +26,11 @@ export default async function AdminPlayersPage() {
 
   return (
     <div className="space-y-4">
-      <AppHeader title="Jogadores" subtitle="Cadastro manual, status, reset de PIN e visao rapida do historico." actions={<Link className="badge bg-primary text-primary-foreground" href="/admin/jogadores/novo">Novo jogador</Link>} />
+      <AppHeader
+        title="Jogadores"
+        subtitle="Admins e jogadores usam a mesma base de cadastro. Aqui você controla status, PIN e histórico."
+        actions={<Link className="badge bg-primary text-primary-foreground" href="/admin/jogadores/novo">Novo jogador</Link>}
+      />
       <div className="grid gap-4 lg:grid-cols-2">
         {players.map((player) => {
           const winnings = player.rankings.reduce((sum, ranking) => sum + Number(ranking.prizeAmount), 0);
@@ -39,12 +42,15 @@ export default async function AdminPlayersPage() {
                   <div className="text-lg font-bold">{player.nickname || player.name}</div>
                   <div className="text-sm text-muted-foreground">{player.name} - {formatPhone(player.phone)}</div>
                 </div>
-                <StatusBadge status={player.status} />
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={player.role} />
+                  <StatusBadge status={player.status} />
+                </div>
               </div>
               <div className="grid grid-cols-3 gap-2 text-sm">
-                <div className="rounded-xl bg-background/70 p-3"><div className="text-muted-foreground">Participacoes</div><div className="mt-1 font-bold">{player.entries.length}</div></div>
-                <div className="rounded-xl bg-background/70 p-3"><div className="text-muted-foreground">Vitorias</div><div className="mt-1 font-bold">{wins}</div></div>
-                <div className="rounded-xl bg-background/70 p-3"><div className="text-muted-foreground">Premios</div><div className="mt-1 font-bold">{formatCurrency(winnings)}</div></div>
+                <div className="rounded-xl bg-background/70 p-3"><div className="text-muted-foreground">Participações</div><div className="mt-1 font-bold">{player.entries.length}</div></div>
+                <div className="rounded-xl bg-background/70 p-3"><div className="text-muted-foreground">Vitórias</div><div className="mt-1 font-bold">{wins}</div></div>
+                <div className="rounded-xl bg-background/70 p-3"><div className="text-muted-foreground">Prêmios</div><div className="mt-1 font-bold">{formatCurrency(winnings)}</div></div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <form action={updatePlayerStatusAction}>

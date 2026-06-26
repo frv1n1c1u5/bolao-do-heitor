@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import { AppHeader, StatusBadge } from "@/components/app-shell";
 import { Card, Stat } from "@/components/ui";
@@ -42,7 +42,7 @@ export default async function AdminDashboardPage() {
         </Card>
 
         <Card className="space-y-3">
-          <h2 className="section-title">Pagamentos aguardando confirma--o</h2>
+          <h2 className="section-title">Pagamentos aguardando confirmação</h2>
           <div className="space-y-3">
             {data.pendingPayments.length ? data.pendingPayments.map((entry) => (
               <div key={entry.id} className="rounded-2xl bg-background/70 p-3">
@@ -53,7 +53,7 @@ export default async function AdminDashboardPage() {
                   <Link className="text-sm font-semibold text-primary" href="/admin/pagamentos">Abrir</Link>
                 </div>
               </div>
-            )) : <p className="section-copy">Sem pagamentos aguardando confirma--o.</p>}
+            )) : <p className="section-copy">Sem pagamentos aguardando confirmação.</p>}
           </div>
         </Card>
       </div>
@@ -95,3 +95,4 @@ export default async function AdminDashboardPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import { confirmPaymentAction, rejectPaymentAction } from "@/actions/admin";
+﻿import { confirmPaymentAction, rejectPaymentAction } from "@/actions/admin";
 import { AppHeader, StatusBadge } from "@/components/app-shell";
 import { Button, Card } from "@/components/ui";
 import { getDb } from "@/lib/db";
@@ -13,7 +13,7 @@ export default async function AdminPaymentsPage() {
 
   return (
     <div className="space-y-4">
-      <AppHeader title="Pagamentos" subtitle="Confirma--o manual de Pix. Apenas confirmados entram no ranking oficial." />
+      <AppHeader title="Pagamentos" subtitle="Confirmação manual de Pix. Apenas confirmados entram no ranking oficial." />
       <Card className="space-y-3">
         {entries.map((entry) => (
           <div key={entry.id} className="rounded-2xl bg-background/70 p-3">
@@ -22,7 +22,7 @@ export default async function AdminPaymentsPage() {
                 <div className="font-semibold">{entry.user.nickname || entry.user.name}</div>
                 <div className="text-sm text-muted-foreground">{entry.pool.name} - {formatPhone(entry.user.phone)}</div>
                 <div className="text-sm text-muted-foreground">Valor: {formatCurrency(Number(entry.pool.entryFee))}</div>
-                {entry.markedAsPaidAt ? <div className="text-sm text-muted-foreground">Ja paguei: {formatDateTime(entry.markedAsPaidAt)}</div> : null}
+                {entry.markedAsPaidAt ? <div className="text-sm text-muted-foreground">Já paguei: {formatDateTime(entry.markedAsPaidAt)}</div> : null}
               </div>
               <StatusBadge status={entry.paymentStatus} />
             </div>
@@ -36,3 +36,4 @@ export default async function AdminPaymentsPage() {
     </div>
   );
 }
+

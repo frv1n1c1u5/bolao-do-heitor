@@ -40,6 +40,11 @@ function sameText(left: string | null | undefined, right: string) {
   return (left ?? "").trim().toLocaleLowerCase("pt-BR") === right.trim().toLocaleLowerCase("pt-BR");
 }
 
+function matchesRole(role: UserRole, allowed?: UserRole | UserRole[]) {
+  if (!allowed) return true;
+  return Array.isArray(allowed) ? allowed.includes(role) : role === allowed;
+}
+
 export async function hashPin(pin: string) {
   return bcrypt.hash(pin, 10);
 }
@@ -48,7 +53,7 @@ export async function validatePin(pin: string, hash: string) {
   return bcrypt.compare(pin, hash);
 }
 
-export async function authenticateUser(identifier: string, pin: string, role?: UserRole) {
+export async function authenticateUser(identifier: string, pin: string, role?: UserRole | UserRole[]) {
   const db = getDb();
   const phone = normalizeIdentifier(identifier);
   const trimmedIdentifier = identifier.trim();
@@ -63,7 +68,6 @@ export async function authenticateUser(identifier: string, pin: string, role?: U
 
   const candidates = await db.user.findMany({
     where: {
-      role: role ?? undefined,
       OR: orFilters,
     },
     take: 10,
@@ -72,9 +76,10 @@ export async function authenticateUser(identifier: string, pin: string, role?: U
   const user =
     candidates.find((candidate) => {
       return (
-        (phone && candidate.phone === phone) ||
-        sameText(candidate.name, trimmedIdentifier) ||
-        sameText(candidate.nickname, trimmedIdentifier)
+        matchesRole(candidate.role, role) &&
+        ((phone && candidate.phone === phone) ||
+          sameText(candidate.name, trimmedIdentifier) ||
+          sameText(candidate.nickname, trimmedIdentifier))
       );
     }) ?? null;
 
@@ -193,14 +198,17 @@ export async function getCurrentSession() {
   }
 }
 
-export async function requireUser(role?: UserRole) {
+export async function requireUser(role?: UserRole | UserRole[]) {
   const session = await getCurrentSession();
 
   if (!session) {
-    redirect(role === UserRole.ADMIN ? "/admin/entrar" : "/entrar");
+    const adminRequested = Array.isArray(role)
+      ? role.includes(UserRole.ADMIN) && role.length === 1
+      : role === UserRole.ADMIN;
+    redirect(adminRequested ? "/admin/entrar" : "/entrar");
   }
 
-  if (role && session.user.role !== role) {
+  if (role && !matchesRole(session.user.role, role)) {
     redirect(session.user.role === UserRole.ADMIN ? "/admin" : "/app");
   }
 

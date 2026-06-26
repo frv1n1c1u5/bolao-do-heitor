@@ -9,8 +9,10 @@ import { getDb } from "@/lib/db";
 import { isPredictionLocked, recalculatePoolRanking } from "@/lib/pools";
 import { inferWinner } from "@/lib/scoring";
 
+const PLAYER_ACCESS = [UserRole.PLAYER, UserRole.ADMIN];
+
 export async function joinPoolAction(formData: FormData) {
-  const session = await requireUser(UserRole.PLAYER);
+  const session = await requireUser(PLAYER_ACCESS);
   const poolId = String(formData.get("poolId"));
   const db = getDb();
 
@@ -37,7 +39,7 @@ export async function joinPoolAction(formData: FormData) {
 }
 
 export async function markPaidAction(formData: FormData) {
-  const session = await requireUser(UserRole.PLAYER);
+  const session = await requireUser(PLAYER_ACCESS);
   const poolId = String(formData.get("poolId"));
   const db = getDb();
   const entry = await db.poolEntry.update({
@@ -61,7 +63,7 @@ export async function markPaidAction(formData: FormData) {
 }
 
 export async function savePredictionsAction(formData: FormData) {
-  const session = await requireUser(UserRole.PLAYER);
+  const session = await requireUser(PLAYER_ACCESS);
   const poolId = String(formData.get("poolId"));
   const db = getDb();
   const pool = await db.pool.findUniqueOrThrow({

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { UserRole } from "@prisma/client";
 
 import { AppHeader } from "@/components/app-shell";
@@ -7,7 +7,7 @@ import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 
 export default async function RankingIndexPage() {
-  const session = await requireUser(UserRole.PLAYER);
+  const session = await requireUser([UserRole.PLAYER, UserRole.ADMIN]);
   const entries = await getDb().poolEntry.findMany({
     where: { userId: session.user.id },
     include: { pool: true },
@@ -16,7 +16,7 @@ export default async function RankingIndexPage() {
 
   return (
     <div className="space-y-4">
-      <AppHeader title="Rankings" subtitle="Acesse os rankings dos boloes em que voce entrou." />
+      <AppHeader title="Rankings" subtitle="Acesse os rankings dos bolões em que você entrou." />
       <div className="space-y-3">
         {entries.map((entry) => (
           <Card key={entry.id} className="flex items-center justify-between gap-3">

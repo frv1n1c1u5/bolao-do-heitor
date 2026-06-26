@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { StatusBadge } from "@/components/app-shell";
 import { Button, Input } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { formatTeamName } from "@/lib/country-flags";
 
 type MatchPickerItem = {
   id: string;
@@ -162,7 +163,7 @@ export function MatchPicker({
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <div className="truncate text-base font-bold text-foreground">
-                        {match.homeTeam} x {match.awayTeam}
+                        {formatTeamName(match.homeTeam)} x {formatTeamName(match.awayTeam)}
                       </div>
                       <div className="mt-1 text-sm text-muted-foreground">
                         {match.competitionName}

@@ -1,4 +1,4 @@
-import { UserRole } from "@prisma/client";
+﻿import { UserRole } from "@prisma/client";
 import Link from "next/link";
 
 import { joinPoolAction, markPaidAction, savePredictionsAction } from "@/actions/player";
@@ -12,7 +12,7 @@ import { formatCurrency } from "@/lib/format";
 import { ensureDefaultSettings, isPredictionLocked } from "@/lib/pools";
 
 export default async function PlayerPoolDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await requireUser(UserRole.PLAYER);
+  const session = await requireUser([UserRole.PLAYER, UserRole.ADMIN]);
   const { id } = await params;
   const [pool, settings] = await Promise.all([
     getDb().pool.findUniqueOrThrow({
@@ -39,8 +39,8 @@ export default async function PlayerPoolDetailPage({ params }: { params: Promise
 
       {!myEntry ? (
         <Card className="space-y-3">
-          <p className="section-copy">Entre no bolao para liberar pagamento e palpites.</p>
-          <form action={joinPoolAction}><input type="hidden" name="poolId" value={pool.id} /><Button>Entrar no bolao</Button></form>
+          <p className="section-copy">Entre no bolão para liberar pagamento e palpites.</p>
+          <form action={joinPoolAction}><input type="hidden" name="poolId" value={pool.id} /><Button>Entrar no bolão</Button></form>
         </Card>
       ) : null}
 
@@ -56,8 +56,8 @@ export default async function PlayerPoolDetailPage({ params }: { params: Promise
             <Card className="space-y-3">
               <h2 className="section-title">Seu status</h2>
               <StatusBadge status={myEntry.paymentStatus} />
-              <p className="section-copy">Apos pagar, clique em Ja paguei e aguarde a confirma--o manual do admin.</p>
-              <form action={markPaidAction}><input type="hidden" name="poolId" value={pool.id} /><Button variant="secondary">Ja paguei</Button></form>
+              <p className="section-copy">Após pagar, clique em Já paguei e aguarde a confirmação manual do admin.</p>
+              <form action={markPaidAction}><input type="hidden" name="poolId" value={pool.id} /><Button variant="secondary">Já paguei</Button></form>
               <Link className="text-sm font-semibold text-primary" href={`/app/ranking/${pool.id}`}>Ver ranking</Link>
             </Card>
           </div>
@@ -65,7 +65,7 @@ export default async function PlayerPoolDetailPage({ params }: { params: Promise
           <Card className="space-y-4">
             <div>
               <h2 className="section-title">Palpites</h2>
-              <p className="section-copy mt-1">Voce ainda pode alterar ate o jogo comecar. Palpites dos outros liberados apos o inicio do jogo.</p>
+              <p className="section-copy mt-1">Você ainda pode alterar até o jogo começar. Palpites dos outros liberados após o início do jogo.</p>
             </div>
             <form action={savePredictionsAction} className="space-y-4">
               <input type="hidden" name="poolId" value={pool.id} />

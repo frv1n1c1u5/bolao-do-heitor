@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { UserRole } from "@prisma/client";
 
 import { AppHeader, StatusBadge } from "@/components/app-shell";
@@ -8,7 +8,7 @@ import { getDb } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 
 export default async function MyPoolsPage() {
-  const session = await requireUser(UserRole.PLAYER);
+  const session = await requireUser([UserRole.PLAYER, UserRole.ADMIN]);
   const entries = await getDb().poolEntry.findMany({
     where: { userId: session.user.id },
     include: { pool: true, predictions: true },
@@ -17,7 +17,7 @@ export default async function MyPoolsPage() {
 
   return (
     <div className="space-y-4">
-      <AppHeader title="Meus boloes" subtitle="Acompanhe pagamento, quantidade de palpites e acesso r-pido ao ranking." />
+      <AppHeader title="Meus bolões" subtitle="Acompanhe pagamento, quantidade de palpites e acesso rápido ao ranking." />
       <div className="space-y-4">
         {entries.map((entry) => (
           <Card key={entry.id} className="space-y-3">
@@ -31,7 +31,7 @@ export default async function MyPoolsPage() {
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Palpites enviados: {entry.predictions.length}</span>
               <div className="flex gap-3">
-                <Link className="font-semibold text-primary" href={`/app/boloes/${entry.poolId}`}>Bolao</Link>
+                <Link className="font-semibold text-primary" href={`/app/boloes/${entry.poolId}`}>Bolão</Link>
                 <Link className="font-semibold text-primary" href={`/app/ranking/${entry.poolId}`}>Ranking</Link>
               </div>
             </div>

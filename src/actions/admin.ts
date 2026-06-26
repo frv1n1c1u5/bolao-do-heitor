@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import {
   PaymentStatus,
@@ -17,6 +17,7 @@ import { hashPin, logAudit, requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { upsertMatchesFromApi, syncPoolResults, recalculatePoolRanking } from "@/lib/pools";
 import { prizeDefaults } from "@/lib/scoring";
+import { getBrazilDateKey, sameWorldCupDay } from "@/lib/world-cup";
 
 const playerSchema = z.object({
   name: z.string().min(2),
@@ -146,11 +147,35 @@ export async function createPoolAction(formData: FormData) {
     throw new Error("Selecione ao menos um jogo.");
   }
 
+  const poolDate = new Date(String(formData.get("poolDate") ?? new Date().toISOString()));
+  const selectedMatches = await db.match.findMany({
+    where: { id: { in: matchIds } },
+    select: { id: true, localDate: true },
+  });
+
+  if (selectedMatches.length !== matchIds.length) {
+    throw new Error("Há jogos selecionados que não existem mais na base local.");
+  }
+
+  const expectedDay = getBrazilDateKey(poolDate);
+  const differentDay = selectedMatches.find((match) => getBrazilDateKey(match.localDate) !== expectedDay);
+
+  if (differentDay) {
+    throw new Error("Todos os jogos do bolão precisam ser do mesmo dia escolhido.");
+  }
+
+  const firstMatch = selectedMatches[0];
+  const mixedDays = selectedMatches.some((match) => !sameWorldCupDay(match.localDate, firstMatch.localDate));
+
+  if (mixedDays) {
+    throw new Error("O bolão aceita jogos de apenas um único dia.");
+  }
+
   const pool = await db.pool.create({
     data: {
       name: String(formData.get("name") ?? ""),
       type,
-      poolDate: new Date(String(formData.get("poolDate") ?? new Date().toISOString())),
+      poolDate,
       entryFee: Number(formData.get("entryFee") ?? 0),
       cutoffDateTime: formData.get("cutoffDateTime")
         ? new Date(String(formData.get("cutoffDateTime")))
@@ -292,4 +317,5 @@ export async function markPrizePaidAction(formData: FormData) {
   revalidatePath("/admin/caixa");
   revalidatePath("/admin/historico");
 }
+
 

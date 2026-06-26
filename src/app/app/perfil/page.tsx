@@ -1,4 +1,4 @@
-import { UserRole } from "@prisma/client";
+﻿import { UserRole } from "@prisma/client";
 
 import { AppHeader, StatusBadge } from "@/components/app-shell";
 import { Card, Stat } from "@/components/ui";
@@ -7,7 +7,7 @@ import { getDb } from "@/lib/db";
 import { formatCurrency, formatPhone } from "@/lib/format";
 
 export default async function PlayerProfilePage() {
-  const session = await requireUser(UserRole.PLAYER);
+  const session = await requireUser([UserRole.PLAYER, UserRole.ADMIN]);
   const rankings = await getDb().poolRanking.findMany({ where: { userId: session.user.id } });
   const totalPrizes = rankings.reduce((sum, ranking) => sum + Number(ranking.prizeAmount), 0);
 
@@ -22,13 +22,13 @@ export default async function PlayerProfilePage() {
         <StatusBadge status={session.user.status} />
       </Card>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat label="Boloes no ranking" value={rankings.length} />
-        <Stat label="Premios ganhos" value={formatCurrency(totalPrizes)} />
+        <Stat label="Bolões no ranking" value={rankings.length} />
+        <Stat label="Prêmios ganhos" value={formatCurrency(totalPrizes)} />
         <Stat label="Pontos totais" value={rankings.reduce((sum, ranking) => sum + ranking.totalPoints, 0)} />
         <Stat label="Placares exatos" value={rankings.reduce((sum, ranking) => sum + ranking.exactScores, 0)} />
       </div>
       <Card>
-        <p className="section-copy">O reset de PIN - feito pelo administrador.</p>
+        <p className="section-copy">O reset de PIN é feito pelo administrador.</p>
       </Card>
     </div>
   );

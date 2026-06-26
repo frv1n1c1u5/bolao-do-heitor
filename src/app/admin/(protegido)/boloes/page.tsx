@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import { AppHeader, StatusBadge } from "@/components/app-shell";
 import { Card } from "@/components/ui";
@@ -13,7 +13,7 @@ export default async function AdminPoolsPage() {
 
   return (
     <div className="space-y-4">
-      <AppHeader title="Boloes" subtitle="Crie boloes por jogo ou por dia e acompanhe pagamentos e apura--o." actions={<Link className="badge bg-primary text-primary-foreground" href="/admin/boloes/novo">Novo bolao</Link>} />
+      <AppHeader title="Bolões" subtitle="Crie bolões por jogo ou por dia e acompanhe pagamentos e apuração." actions={<Link className="badge bg-primary text-primary-foreground" href="/admin/boloes/novo">Novo bolão</Link>} />
       <div className="grid gap-4 lg:grid-cols-2">
         {pools.map((pool) => (
           <Card key={pool.id} className="space-y-3">
@@ -38,3 +38,4 @@ export default async function AdminPoolsPage() {
     </div>
   );
 }
+

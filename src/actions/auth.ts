@@ -25,7 +25,7 @@ export async function loginPlayerAction(_: unknown, formData: FormData) {
   }
 
   try {
-    const result = await authenticateUser(identifier, pin, UserRole.PLAYER);
+    const result = await authenticateUser(identifier, pin);
     if (!result.ok) {
       return { error: result.error };
     }

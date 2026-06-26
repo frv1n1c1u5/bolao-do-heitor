@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { QRCodeSVG } from "qrcode.react";
 
@@ -46,8 +46,9 @@ export function PixPanel({
         </Button>
       ) : null}
       <p className="text-sm text-muted-foreground">
-        {instructions || "Apos pagar, clique em Ja paguei e aguarde a confirma--o manual do admin."}
+        {instructions || "Após pagar, clique em Já paguei e aguarde a confirmação manual do admin."}
       </p>
     </Card>
   );
 }
+

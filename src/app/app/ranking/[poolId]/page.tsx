@@ -1,4 +1,4 @@
-import { UserRole } from "@prisma/client";
+﻿import { UserRole } from "@prisma/client";
 
 import { AppHeader, StatusBadge } from "@/components/app-shell";
 import { Card } from "@/components/ui";
@@ -7,7 +7,7 @@ import { getDb } from "@/lib/db";
 import { formatCurrency } from "@/lib/format";
 
 export default async function PlayerRankingPage({ params }: { params: Promise<{ poolId: string }> }) {
-  await requireUser(UserRole.PLAYER);
+  await requireUser([UserRole.PLAYER, UserRole.ADMIN]);
   const { poolId } = await params;
   const pool = await getDb().pool.findUniqueOrThrow({
     where: { id: poolId },
@@ -19,7 +19,7 @@ export default async function PlayerRankingPage({ params }: { params: Promise<{ 
 
   return (
     <div className="space-y-4">
-      <AppHeader title={`Ranking - ${pool.name}`} subtitle="Apenas participantes confirmados entram no ranking oficial e na premiacao." actions={<StatusBadge status={pool.status} />} />
+      <AppHeader title={`Ranking - ${pool.name}`} subtitle="Apenas participantes confirmados entram no ranking oficial e na premiação." actions={<StatusBadge status={pool.status} />} />
       <Card className="space-y-3">
         <h2 className="section-title">Ranking oficial</h2>
         {pool.rankings.length ? pool.rankings.map((ranking) => (
@@ -31,21 +31,21 @@ export default async function PlayerRankingPage({ params }: { params: Promise<{ 
               </div>
               <div className="text-right">
                 <div className="font-bold text-primary">{formatCurrency(Number(ranking.prizeAmount))}</div>
-                {ranking.isTechnicalTie ? <div className="text-xs text-muted-foreground">Empate tecnico</div> : null}
+                {ranking.isTechnicalTie ? <div className="text-xs text-muted-foreground">Empate técnico</div> : null}
               </div>
             </div>
           </div>
-        )) : <p className="section-copy">Ainda nao ha ranking oficial disponivel.</p>}
+        )) : <p className="section-copy">Ainda não há ranking oficial disponível.</p>}
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="section-title">Fora do ranking oficial ate confirma--o do pagamento</h2>
+        <h2 className="section-title">Fora do ranking oficial até confirmação do pagamento</h2>
         {pool.entries.length ? pool.entries.map((entry) => (
           <div key={entry.id} className="flex items-center justify-between rounded-2xl bg-background/70 p-3 text-sm">
             <span>{entry.user.nickname || entry.user.name}</span>
             <StatusBadge status={entry.paymentStatus} />
           </div>
-        )) : <p className="section-copy">Nao ha participantes pendentes.</p>}
+        )) : <p className="section-copy">Não há participantes pendentes.</p>}
       </Card>
     </div>
   );

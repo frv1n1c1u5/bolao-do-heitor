@@ -1,4 +1,4 @@
-import { UserRole } from "@prisma/client";
+﻿import { UserRole } from "@prisma/client";
 
 import { AppHeader } from "@/components/app-shell";
 import { Card, Stat } from "@/components/ui";
@@ -7,7 +7,7 @@ import { getDb } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 export default async function PlayerHistoryPage() {
-  const session = await requireUser(UserRole.PLAYER);
+  const session = await requireUser([UserRole.PLAYER, UserRole.ADMIN]);
   const rankings = await getDb().poolRanking.findMany({
     where: { userId: session.user.id, pool: { status: "FINISHED" } },
     include: { pool: true },
@@ -24,11 +24,11 @@ export default async function PlayerHistoryPage() {
 
   return (
     <div className="space-y-4">
-      <AppHeader title="Historico" subtitle="Somente participacoes oficiais com pagamento confirmado entram aqui." />
+      <AppHeader title="Histórico" subtitle="Somente participações oficiais com pagamento confirmado entram aqui." />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat label="Boloes oficiais" value={rankings.length} />
-        <Stat label="Vitorias" value={totals.wins} />
-        <Stat label="Premios" value={formatCurrency(totals.prizes)} />
+        <Stat label="Bolões oficiais" value={rankings.length} />
+        <Stat label="Vitórias" value={totals.wins} />
+        <Stat label="Prêmios" value={formatCurrency(totals.prizes)} />
         <Stat label="Pontos" value={totals.points} />
       </div>
       <div className="space-y-4">
@@ -36,7 +36,7 @@ export default async function PlayerHistoryPage() {
           <Card key={ranking.id} className="flex items-center justify-between gap-3">
             <div>
               <div className="font-semibold">{ranking.pool.name}</div>
-              <div className="text-sm text-muted-foreground">{formatDate(ranking.pool.poolDate)} - posicao #{ranking.position}</div>
+              <div className="text-sm text-muted-foreground">{formatDate(ranking.pool.poolDate)} - posição #{ranking.position}</div>
             </div>
             <div className="text-right text-sm">
               <div className="font-bold text-primary">{formatCurrency(Number(ranking.prizeAmount))}</div>

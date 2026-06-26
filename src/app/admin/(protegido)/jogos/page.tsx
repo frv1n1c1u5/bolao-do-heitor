@@ -1,10 +1,11 @@
-import { saveMatchesAction } from "@/actions/admin";
+﻿import { saveMatchesAction } from "@/actions/admin";
 import { AppHeader, StatusBadge } from "@/components/app-shell";
 import { Button, Card, Input, Label } from "@/components/ui";
+import { formatTeamName } from "@/lib/country-flags";
 import { getDb } from "@/lib/db";
 import { fetchWorldCup2026Matches } from "@/lib/football-data";
 import { formatDateTime } from "@/lib/format";
-import { normalizeWorldCupDateRange, WORLD_CUP_2026 } from "@/lib/world-cup";
+import { getBrazilDateKey, getDefaultWorldCupDay, normalizeWorldCupDay, WORLD_CUP_2026 } from "@/lib/world-cup";
 
 export default async function AdminMatchesPage({
   searchParams,
@@ -13,29 +14,30 @@ export default async function AdminMatchesPage({
 }) {
   const params = await searchParams;
   const status = typeof params.status === "string" ? params.status : "";
-  const range = normalizeWorldCupDateRange(
-    typeof params.dateFrom === "string" ? params.dateFrom : WORLD_CUP_2026.startDate,
-    typeof params.dateTo === "string" ? params.dateTo : WORLD_CUP_2026.endDate,
+  const selectedDay = normalizeWorldCupDay(
+    typeof params.day === "string" ? params.day : getDefaultWorldCupDay(),
   );
 
-  const [results, savedMatches] = await Promise.all([
+  const [results, allSavedMatches] = await Promise.all([
     fetchWorldCup2026Matches({
-      dateFrom: range.dateFrom,
-      dateTo: range.dateTo,
+      dateFrom: selectedDay,
+      dateTo: selectedDay,
       status: status || undefined,
     }).catch(() => []),
     getDb().match.findMany({
       where: { competitionCode: WORLD_CUP_2026.code },
       orderBy: { localDate: "asc" },
-      take: 60,
+      take: 150,
     }),
   ]);
+
+  const savedMatches = allSavedMatches.filter((match) => getBrazilDateKey(match.localDate) === selectedDay);
 
   return (
     <div className="space-y-4">
       <AppHeader
         title="Jogos da Copa 2026"
-        subtitle="Esta tela trabalha so com a Copa do Mundo de 2026. Busque, revise e salve os jogos antes de criar os boloes."
+        subtitle="Escolha um único dia da Copa, revise os jogos da data e salve localmente antes de criar o bolão."
       />
       <Card className="space-y-4">
         <div className="grid gap-3 lg:grid-cols-[1.2fr_0.8fr_0.8fr]">
@@ -44,8 +46,7 @@ export default async function AdminMatchesPage({
               FIFA World Cup 2026
             </div>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Periodo oficial: {WORLD_CUP_2026.startDate} ate {WORLD_CUP_2026.endDate}.
-              A busca abaixo ja consulta apenas a competicao WC.
+              Período oficial: {WORLD_CUP_2026.startDate} até {WORLD_CUP_2026.endDate}. A busca abaixo já consulta apenas a competição WC.
             </p>
           </div>
           <div className="rounded-2xl bg-background/75 p-4">
@@ -64,12 +65,8 @@ export default async function AdminMatchesPage({
 
         <form className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <Label>Data inicial</Label>
-            <Input type="date" name="dateFrom" defaultValue={range.dateFrom} required />
-          </div>
-          <div>
-            <Label>Data final</Label>
-            <Input type="date" name="dateTo" defaultValue={range.dateTo} required />
+            <Label>Dia da Copa</Label>
+            <Input type="date" name="day" defaultValue={selectedDay} min={WORLD_CUP_2026.startDate} max={WORLD_CUP_2026.endDate} required />
           </div>
           <div>
             <Label>Status</Label>
@@ -92,7 +89,7 @@ export default async function AdminMatchesPage({
               <label key={match.externalApiId} className="flex items-start gap-3 rounded-2xl bg-background/70 p-3">
                 <input type="checkbox" name="externalApiId" value={match.externalApiId} className="mt-1 h-4 w-4" />
                 <div className="flex-1">
-                  <div className="font-semibold">{match.homeTeam} x {match.awayTeam}</div>
+                  <div className="font-semibold">{formatTeamName(match.homeTeam)} x {formatTeamName(match.awayTeam)}</div>
                   <div className="text-sm text-muted-foreground">{match.competitionName} - {formatDateTime(match.localDate)}</div>
                 </div>
                 <StatusBadge status={match.status} />
@@ -103,7 +100,7 @@ export default async function AdminMatchesPage({
       ) : (
         <Card>
           <p className="section-copy">
-            Nenhum jogo retornou para esse recorte da Copa de 2026. Ajuste o intervalo ou o status.
+            Nenhum jogo retornou para esse dia da Copa de 2026. Ajuste a data ou o status.
           </p>
         </Card>
       )}
@@ -114,13 +111,13 @@ export default async function AdminMatchesPage({
           <div key={match.id} className="rounded-2xl bg-background/70 p-3">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="font-semibold">{match.homeTeam} x {match.awayTeam}</div>
+                <div className="font-semibold">{formatTeamName(match.homeTeam)} x {formatTeamName(match.awayTeam)}</div>
                 <div className="text-sm text-muted-foreground">{match.competitionName} - {formatDateTime(match.localDate)}</div>
               </div>
               <StatusBadge status={match.status} />
             </div>
           </div>
-        )) : <p className="section-copy">Ainda nao ha jogos da Copa salvos localmente.</p>}
+        )) : <p className="section-copy">Ainda não há jogos da Copa salvos localmente para este dia.</p>}
       </Card>
     </div>
   );

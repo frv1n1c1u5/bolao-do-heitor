@@ -1,4 +1,4 @@
-import "server-only";
+﻿import "server-only";
 
 import {
   MatchStatus,
@@ -37,7 +37,7 @@ export async function ensureDefaultSettings() {
     data: {
       pixReceiverName: "Bolao do Heitor",
       paymentInstructions:
-        "Apos pagar, clique em Ja paguei e aguarde a confirma--o manual do admin.",
+        "Após pagar, clique em Já paguei e aguarde a confirmação manual do admin.",
     },
   });
 }
@@ -369,4 +369,5 @@ export async function getHallOfFame() {
     return b.prizes - a.prizes;
   });
 }
+
 

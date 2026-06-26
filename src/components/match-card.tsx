@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { Card } from "@/components/ui";
 import { formatDateTime } from "@/lib/format";
+import { formatTeamName } from "@/lib/country-flags";
 
 export function MatchCard({
   match,
@@ -37,13 +38,13 @@ export function MatchCard({
           ) : (
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary text-xs font-black">{match.homeTeam.slice(0, 2).toUpperCase()}</div>
           )}
-          <div className="min-w-0 text-sm font-semibold">{match.homeTeam}</div>
+          <div className="min-w-0 text-sm font-semibold">{formatTeamName(match.homeTeam)}</div>
         </div>
         <div className="rounded-xl bg-background/80 px-3 py-2 text-center text-sm font-black">
           {match.homeScore ?? "-"} x {match.awayScore ?? "-"}
         </div>
         <div className="flex items-center justify-end gap-3">
-          <div className="min-w-0 text-right text-sm font-semibold">{match.awayTeam}</div>
+          <div className="min-w-0 text-right text-sm font-semibold">{formatTeamName(match.awayTeam)}</div>
           {match.awayCrest ? (
             <Image src={match.awayCrest} alt={match.awayTeam} width={36} height={36} className="h-9 w-9 rounded-full bg-white object-contain p-1" />
           ) : (
